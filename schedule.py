@@ -1,4 +1,7 @@
 from jira import JIRA
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 
 def connect(email, apiToken, server):
@@ -31,21 +34,25 @@ def create_task(connection, fields):
     return {'error': None, 'task': task}
 
 
-if __name__ == "__main__":
-    email = 'nguyenvanthu1905@gmail.com'
-    apiToken = 'rk02aXQlAqLKw8y6jhEl43E'
-    server = 'https://issuse.atlassian.net'
-    fields = {
+def main(email=None, apiToken=None, server=None, fields=None):
+    dotenv_path = join(dirname(__file__), '.env')
+    load_dotenv(dotenv_path)
+    email = os.environ.get('EMAIL') if not email else email
+    apiToken = os.environ.get('APITOKEN') if not apiToken else apiToken
+    server = os.environ.get('SERVER') if not server else server
+    fields = ({
         'project': {'id': 10000},
         'summary': 'Good morning everybody.',
-        'issuetype': {
-            'name': 'Emailed request'
-        }
-    }
+        'issuetype': {'name': 'Emailed request'}
+    }if not fields else fields)
+
     connection = connect(email, apiToken, server)
     if connection['error']:
-        print(connection['error'])
+        return connection
     else:
         task = create_task(connection['connection'], fields)
-        if task:
-            print(task)
+        return task
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,8 @@
 import unittest
-
-from schedule import connect, create_task
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+from schedule import connect, create_task, main
 from cronjob import CronJob
 from crontab import CronTab
 
@@ -78,6 +80,14 @@ class TestSchedule(unittest.TestCase):
         self.assertFalse(create_task(connection, fields_3)['task'])
         self.assertFalse(create_task(connection, fields_4)['task'])
 
+    def test_main(self):
+        dotenv_path = join(dirname(__file__), '.env')
+        load_dotenv(dotenv_path)
+        email = os.environ.get('EMAIL')
+        token = os.environ.get('APITOKEN')
+        server = os.environ.get('SERVER')
+        self.assertTrue(main(email, token, server).get('task'))
+
 
 class TestCronJob(unittest.TestCase):
     def test_init(self):
@@ -87,9 +97,21 @@ class TestCronJob(unittest.TestCase):
         cron = CronJob()
         current_cron = len(cron.cron)
         cron.create('ls')
-        self.assertEqual(len(cron.cron), current_cron+1)
+        cron_assert = CronJob()
+        self.assertEqual(len(cron_assert.cron), current_cron+1)
 
     def test_remove(self):
         cron = CronJob()
         cron.remove()
-        self.assertEqual(len(cron.cron), 0)
+        cron_assert = CronJob()
+        self.assertEqual(len(cron_assert.cron), 0)
+
+    def test_command(self):
+        dotenv_path = join(dirname(__file__), '.env')
+        load_dotenv(dotenv_path)
+        virtual_path = os.environ.get('VIRTUAL_PATH')
+        filename = os.environ.get('FILENAME')
+        path = os.path.join(os.getcwd(), filename)
+        command = virtual_path + path
+        test = os.system(command)
+        self.assertEqual(test, 0)

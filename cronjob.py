@@ -1,4 +1,7 @@
 import os
+import sys
+from os.path import join, dirname
+from dotenv import load_dotenv
 from crontab import CronTab
 
 
@@ -14,11 +17,19 @@ class CronJob():
 
     def remove(self):
         self.cron.remove_all()
+        self.cron.write()
 
 
 if __name__ == "__main__":
-    filename = 'schedule.py'
-    path = os.path.join(os.getcwd(), filename)
-    virtual_path = '/home/cristend/.local/share/virtualenvs/Bai1-E4ZZKRKx/bin/python3 '
-    command = virtual_path + path
-    job = CronJob().create(command)
+    args = sys.argv
+    flag = None
+    if len(args) > 1:
+        flag = args[1]
+    if flag == 'clear':
+        CronJob().remove()
+    else:
+        filename = os.environ.get('FILENAME')
+        path = os.path.join(os.getcwd(), filename)
+        virtual_path = os.environ.get('VIRTUAL_PATH')
+        command = virtual_path + path
+        job = CronJob().create(command)
